@@ -39,7 +39,15 @@ app.registerExtension({
     const rows = [];
     for (let i = 1; i <= MAX; i++) rows.push(get("value_" + i));
 
-    const drawRadio = (ctx, w, i, width, y, h) => {
+    const select = (i) => {
+      selW.value = i;
+      if (selW.callback) selW.callback(i);
+      node.setDirtyCanvas(true, true);
+      app.graph.setDirtyCanvas(true, true);
+    };
+    const inRadioZone = (x) => x >= node.size[0] - MARGIN - RW - 2;
+
+    const drawRadio = (ctx, i, width, y, h) => {
       const cx = width - MARGIN - RW / 2;
       const cy = y + h / 2;
       const active = Number(selW.value) === i;
@@ -65,29 +73,48 @@ app.registerExtension({
         const o = w.drawWidget;
         w.drawWidget = function (ctx, opts) {
           o.call(this, ctx, { ...opts, width: opts.width - RW });
-          drawRadio(ctx, w, i, opts.width, this.y, this.height ?? LiteGraph.NODE_WIDGET_HEIGHT);
+          drawRadio(ctx, i, opts.width, this.y, this.height ?? LiteGraph.NODE_WIDGET_HEIGHT);
         };
       } else {
         const o = w.draw;
         w.draw = function (ctx, n, width, y, h) {
           if (o) o.call(this, ctx, n, width - RW, y, h);
-          drawRadio(ctx, w, i, width, y, h ?? LiteGraph.NODE_WIDGET_HEIGHT);
+          drawRadio(ctx, i, width, y, h ?? LiteGraph.NODE_WIDGET_HEIGHT);
+        };
+      }
+
+      // Neues Frontend: Klick auf das Widget kommt ueber widget.onClick
+      const oc = w.onClick;
+      w.onClick = function (opts) {
+        const e = opts && opts.e;
+        if (e && e.canvasX != null && inRadioZone(e.canvasX - node.pos[0])) {
+          select(i);
+          return;
+        }
+        return oc ? oc.apply(this, arguments) : undefined;
+      };
+      // Verhindert Wertaenderung durch Ziehen im Radio-Bereich
+      const od = w.onDrag;
+      if (typeof od === "function") {
+        w.onDrag = function (opts) {
+          const e = opts && opts.e;
+          if (e && e.canvasX != null && inRadioZone(e.canvasX - node.pos[0])) return;
+          return od.apply(this, arguments);
         };
       }
     });
 
+    // Altes Frontend: Klick direkt auf der Node
     const prevDown = node.onMouseDown;
     node.onMouseDown = function (e, pos, canvas) {
       const count = parseInt(countW.value);
-      if (pos[0] >= this.size[0] - MARGIN - RW - 2) {
+      if (inRadioZone(pos[0])) {
         for (let i = 1; i <= count; i++) {
           const w = rows[i - 1];
           const y = w.last_y ?? w.y;
           const h = w.height ?? LiteGraph.NODE_WIDGET_HEIGHT;
           if (y != null && pos[1] >= y && pos[1] <= y + h) {
-            selW.value = i;
-            if (selW.callback) selW.callback(i);
-            this.setDirtyCanvas(true, true);
+            select(i);
             return true;
           }
         }

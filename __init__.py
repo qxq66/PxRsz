@@ -210,3 +210,15 @@ class PixelBudgetResize:
 # No legacy alias and no separate size-check node: add-node menu has one entry.
 NODE_CLASS_MAPPINGS = {"PixelBudgetResizeV2": PixelBudgetResize}
 NODE_DISPLAY_NAME_MAPPINGS = {"PixelBudgetResizeV2": "Pixel Budget Resize V3 (Flexible)"}
+
+
+# --- Float Radio Switch: zweite Node im selben Paket (Resize-Code oben unveraendert) ---
+from .PxFloatRadioSwitch.float_radio_switch import (  # noqa: E402
+    NODE_CLASS_MAPPINGS as _FRS_CLASSES,
+    NODE_DISPLAY_NAME_MAPPINGS as _FRS_NAMES,
+)
+
+NODE_CLASS_MAPPINGS.update(_FRS_CLASSES)
+NODE_DISPLAY_NAME_MAPPINGS.update(_FRS_NAMES)
+WEB_DIRECTORY = "./PxFloatRadioSwitch/js"
+__all__.append("WEB_DIRECTORY")
