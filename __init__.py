@@ -222,3 +222,13 @@ NODE_CLASS_MAPPINGS.update(_FRS_CLASSES)
 NODE_DISPLAY_NAME_MAPPINGS.update(_FRS_NAMES)
 WEB_DIRECTORY = "./PxFloatRadioSwitch/js"
 __all__.append("WEB_DIRECTORY")
+
+
+# --- Auto Reset Int: dritte Node im selben Paket ---
+from .PxAutoResetInt.auto_reset_int import (  # noqa: E402
+    NODE_CLASS_MAPPINGS as _ARI_CLASSES,
+    NODE_DISPLAY_NAME_MAPPINGS as _ARI_NAMES,
+)
+
+NODE_CLASS_MAPPINGS.update(_ARI_CLASSES)
+NODE_DISPLAY_NAME_MAPPINGS.update(_ARI_NAMES)
